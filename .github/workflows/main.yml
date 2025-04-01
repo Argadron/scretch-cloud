@@ -30,7 +30,7 @@ jobs:
           echo "SERVER_HOST=${{ secrets.SERVER_HOST }}" >> .env
           echo "SERVER_PORT=${{ secrets.SERVER_PORT }}" >> .env
           echo "API_CLIENT_URL=${{ secrets.API_CLIENT_URL }}" >> .env
-          echo "APP_REFIX=${{ secrets.APP_PREFIX }}" >> .env
+          echo "APP_PREFIX=${{ secrets.APP_PREFIX }}" >> .env
           echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
           echo "POSTGRES_URI=${{ secrets.POSTGRES_URI }}" >> .env
