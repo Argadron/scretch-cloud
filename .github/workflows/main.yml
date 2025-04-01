@@ -26,6 +26,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Setup environment variables 1/2
         run: |
+          cd scretch-cloud-server
           echo "SERVER_HOST=${{ secrets.SERVER_HOST }}" >> .env
           echo "SERVER_PORT=${{ secrets.SERVER_PORT }}" >> .env
           echo "API_CLIENT_URL=${{ secrets.API_CLIENT_URL }}" >> .env
@@ -39,6 +40,7 @@ jobs:
           echo "ACCESS_TOKEN_EXPIRES=${{ secrets.ACCESS_TOKEN_EXPIRES }}" >> .env
       - name: Setup environment variables 2/2
         run: |
+          cd scretch-cloud-server
           echo "REFRESH_TOKEN_EXPIRES=${{ secrets.REFRESH_TOKEN_EXPIRES }}" >> .env
           echo "REFRESH_TOKEN_COOKIE_NAME=${{ secrets.REFRESH_TOKEN_COOKIE_NAME }}" >> .env
           echo "REFRESH_TOKEN_COOKIE_EXPIRES=${{ secrets.REFRESH_TOKEN_COOKIE_EXPIRES }}" >> .env
