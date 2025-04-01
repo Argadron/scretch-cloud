@@ -1,0 +1,66 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false,
+    "resolveJsonModule": true,
+    "paths": {
+      "@guards/*": [
+        "./apps/gateway/src/shared/guards/*"
+      ],
+      "@decorators/*": [
+        "./apps/gateway/src/shared/decorators/*"
+      ],
+      "@pipes/*": [
+        "./apps/gateway/src/shared/pipes/*"
+      ],
+      "@utils/*": [
+        "./apps/gateway/src/shared/utils/*"
+      ],
+      "@validators/*": [
+        "./apps/gateway/src/shared/validators/*"
+      ],
+      "@interfaces/*": [
+        "./apps/gateway/src/shared/interfaces/*"
+      ],
+      "@app/database": [
+        "./libs/database/src"
+      ],
+      "@app/database/*": [
+        "./libs/database/src/*"
+      ],
+      "@app/stripe": [
+        "libs/stripe/src"
+      ],
+      "@app/stripe/*": [
+        "libs/stripe/src/*"
+      ],
+      "@app/shared": [
+        "libs/shared/src"
+      ],
+      "@app/shared/*": [
+        "libs/shared/src/*"
+      ],
+      "@app/app-config": [
+        "libs/app-config/src"
+      ],
+      "@app/app-config/*": [
+        "libs/app-config/src/*"
+      ]
+    }
+  }
+}

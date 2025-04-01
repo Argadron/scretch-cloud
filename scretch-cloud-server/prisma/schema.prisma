@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URI")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+
+  username String @unique
+  password String 
+
+  role RoleEnum @default(USER)
+  accountType AccountTypeEnum @default(DEFAULT) @map("account_type")
+
+  storages Storage[]
+  files File[]
+  payments Payment[]
+  apps App[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("user")
+}
+
+model Storage {
+  id Int @id @default(autoincrement())
+
+  name String 
+  size Int @default(1)
+  type StorageTypesEnum
+
+  userId Int @map("user_id")
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  appId Int? @map("app_id") @unique
+  app App? @relation(fields: [appId], references: [id])
+
+  files File[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("storage")
+  @@unique([name, userId])
+}
+
+model File {
+  id Int @default(autoincrement()) @id 
+
+  fileOriginalName String @map("file_original_name")
+  fileName String @unique @map("file_name")
+  fileSize Int 
+  fileType FileTypeEnum @map("file_type")
+
+  storageId Int @map("storage_id")
+  storage Storage @relation(fields: [storageId], references: [id])
+
+  userId Int @map("user_id")
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("file")
+}
+
+model Payment {
+  id Int @id @default(autoincrement())
+
+  paymentStatus PaymentStatusEnum @default(NOT_PAYED) @map("payment_status")
+  paymentUrlTag String @map("payment_url_tag")
+  paymentStripeId String @map("payment_stripe_id")
+  paymentStripeUrl String @map("payment_stripe_url")
+
+  userId Int @map("user_id")
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("payment")
+}
+
+model App {
+  id Int @id @default(autoincrement())
+
+  name String 
+  secretKey String @map("secret_key") @unique
+
+  userId Int @map("user_id")
+  user User @relation(fields: [userId], references: [id])
+
+  storage Storage?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("app")
+  @@unique([name, userId])
+}
+
+enum RoleEnum {
+  USER 
+  ADMIN
+}
+
+enum StorageTypesEnum {
+  DEFAULT
+  DEVELOPER
+}
+
+enum AccountTypeEnum {
+  DEFAULT 
+  PRO
+}
+
+enum PaymentStatusEnum {
+  NOT_PAYED
+  PAYED
+}
+
+enum FileTypeEnum {
+  PROFILE
+  STORAGE
+}
