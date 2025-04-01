@@ -50,7 +50,7 @@ jobs:
           echo "USERS_DEFAULT_STORAGE_LIMIT=${{ secrets.USERS_DEFAULT_STORAGE_LIMIT }}" >> .env
           echo "USERS_PRO_STORAGE_LIMIT=${{ secrets.USERS_PRO_STORAGE_LIMIT }}" >> .env
           echo "STRIPE_API_KEY=${{ secrets.STRIPE_API_KEY }}" >> .env
-          echo "STRIPE_PRO_SUBSCRIPTION_PRICE=${{ secrets.STRIPE_PRO_SUBCRIPTION_PRICE }}" >> .env
+          echo "STRIPE_PRO_SUBSCRIPTION_PRICE=${{ secrets.STRIPE_PRO_SUBSCRIPTION_PRICE }}" >> .env
       - name: Install project dependencies
         run: cd scretch-cloud-server && npm install
       - name: Prisma push

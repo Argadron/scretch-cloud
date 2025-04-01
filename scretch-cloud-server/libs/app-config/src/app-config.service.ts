@@ -27,7 +27,7 @@ export class AppConfigService {
             },
             stripeConfig: {
                 stripe_api_key: configService.getOrThrow<string>("STRIPE_API_KEY"),
-                stripe_pro_price: configService.getOrThrow<number>("STRIPE_PRO_SUBCRIPTION_PRICE")
+                stripe_pro_price: configService.getOrThrow<number>("STRIPE_PRO_SUBSCRIPTION_PRICE")
             },
             swaggerConfig: {
                 title: configService.getOrThrow<string>("SWAGGER_TITLE"),
