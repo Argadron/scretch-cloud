@@ -48,10 +48,10 @@ jobs:
           echo "STRIPE_API_KEY=${{ secrets.STRIPE_API_KEY }}" >> .env
           echo "STRIPE_PRO_SUBSCRIPTION_PRICE=${{ secrets.STRIPE_API_KEY }}" >> .env
       - name: Install project dependencies
-        run: npm install
+        run: cd scretch-cloud-server && npm install
       - name: Prisma push
-        run: npx prisma db push
+        run: cd scretch-cloud-server && npx prisma db push
       - name: Run Unit tests
-        run: npm run test
-      - name: Run E2E tests
-        run: npm run test:e2e
+        run: cd scretch-cloud-server && npm run test
+      - name: cd scretch-cloud-server && Run E2E tests
+        run: cd scretch-cloud-server && npm run test:e2e
