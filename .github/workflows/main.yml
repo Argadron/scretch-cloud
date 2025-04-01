@@ -52,6 +52,12 @@ jobs:
           echo "USERS_PRO_STORAGE_LIMIT=${{ secrets.USERS_PRO_STORAGE_LIMIT }}" >> .env
           echo "STRIPE_API_KEY=${{ secrets.STRIPE_API_KEY }}" >> .env
           echo "STRIPE_PRO_SUBSCRIPTION_PRICE=${{ secrets.STRIPE_PRO_SUBSCRIPTION_PRICE }}" >> .env
+          echo "USERS_CLIENT_PORT=${{ secrets.USERS_CLIENT_PORT }}" >> .env
+          echo "PAYMENT_CLIENT_PORT=${{ secrets.PAYMENT_CLIENT_PORT }}" >> .env
+          echo "STORAGE_CLIENT_PORT=${{ secrets.STORAGE_CLIENT_PORT }}" >> .env
+          echo "FILE_CLIENT_PORT=${{ secrets.FILE_CLIENT_PORT }}" >> .env
+          echo "USER_APP_CLIENT_PORT=${{ secrets.USER_APP_CLIENT_PORT }}" >> .env
+          echo "AUTH_CLIENT_PORT=${{ secrets.AUTH_CLIENT_PORT }}" >> .env
       - name: Install project dependencies
         run: cd scretch-cloud-server && npm install
       - name: Prisma push
