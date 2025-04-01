@@ -47,6 +47,7 @@ jobs:
           echo "SWAGGER_TITLE=${{ secrets.SWAGGER_TITLE }}" >> .env
           echo "SWAGGER_DESCRIPTION=${{ secrets.SWAGGER_DESCRIPTION }}" >> .env
           echo "SWAGGER_PATH=${{ secrets.SWAGGER_PATH }}" >> .env
+          echo "SWAGGER_VERSION=${{ secrets.SWAGGER_VERSION }}" >> .env
           echo "USERS_DEFAULT_STORAGE_LIMIT=${{ secrets.USERS_DEFAULT_STORAGE_LIMIT }}" >> .env
           echo "USERS_PRO_STORAGE_LIMIT=${{ secrets.USERS_PRO_STORAGE_LIMIT }}" >> .env
           echo "STRIPE_API_KEY=${{ secrets.STRIPE_API_KEY }}" >> .env
