@@ -28,16 +28,16 @@ export class AuthService {
             })
     }
 
-    public async register(dto: AuthDto, res: Response) {
-        const { access, refresh } = await firstValueFrom(this.authClient.send<{ access: String, refresh: string }, { dto: AuthDto }>({ cmd: "register_cmd" }, { dto }))
+    public async register({ username, password }: AuthDto, res: Response) {
+        const { access, refresh } = await firstValueFrom(this.authClient.send<{ access: String, refresh: string }, { username: string, password: string }>({ cmd: "register_cmd" }, { username, password }))
 
         this.addRefreshToCookie(refresh, res)
 
         return { access }
     }
 
-    public async login(dto: AuthDto, res: Response) {
-        const { access, refresh } = await firstValueFrom(this.authClient.send<{ access: String, refresh: string }, { dto: AuthDto }>({ cmd: "login_cmd" }, { dto }))
+    public async login({ username, password }: AuthDto, res: Response) {
+        const { access, refresh } = await firstValueFrom(this.authClient.send<{ access: String, refresh: string }, { username: string, password: string }>({ cmd: "login_cmd" }, { username, password }))
 
         this.addRefreshToCookie(refresh, res)
 

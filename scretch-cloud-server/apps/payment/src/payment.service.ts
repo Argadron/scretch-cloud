@@ -70,8 +70,8 @@ export class PaymentService {
           metadata: {
               "userId": userId
           },
-          success_url: `${this.clientAPIUrl}/success-pro?urlTag=${id}`,
-          cancel_url: `${this.clientAPIUrl}/cancel-pro?urlTag=${id}`,
+          success_url: `${this.clientAPIUrl}/success-pro.html?urlTag=${id}`,
+          cancel_url: `${this.clientAPIUrl}/cancel-pro.html?urlTag=${id}`,
       })
 
       const payment = await this.prisma.payment.create({
@@ -123,14 +123,14 @@ export class PaymentService {
               }
           })
           
-          this.usersClient.send<User, Prisma.UserUpdateArgs>({ cmd: "update_user_cmd" }, {
+          await firstValueFrom(this.usersClient.send<User, Prisma.UserUpdateArgs>({ cmd: "update_user_cmd" }, {
             where: {
                 id: userId
             },
             data: {
                 accountType: AccountTypeEnum.PRO
             }
-          })
+          }))
 
           this.logger.log(`Successfly validated payment`)
       }

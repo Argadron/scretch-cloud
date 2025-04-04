@@ -20,7 +20,7 @@ export class FileService {
 
         observableStream.subscribe({
            next: (file) => {
-               res.header("Content-Disposition", file.fileOriginalName)
+               res.header("Content-disposition", `attachment; filename=${file.fileOriginalName}`)
                res.end(Buffer.from(file.file[0].data))
            }
         })

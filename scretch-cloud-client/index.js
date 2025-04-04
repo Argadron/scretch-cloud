@@ -1,36 +1,35 @@
 import express from 'express'
 import 'dotenv/config'
-import fs from 'fs'
-import path from 'path'
+import { readdir } from 'fs/promises'
+import { join } from 'path'
 
 const app = express()
 
 const { PORT, HOST } = process.env
 
-function autoLoadPages(rootPath) {
-    const pages = fs.readdirSync(path.join(process.cwd(), `pages`))
+async function autoLoadPages(rootPath) {
+    const pages = await readdir(join(process.cwd(), `pages`))
 
     for (let i = 0; i < pages.length; i++) {
         const currentPage = pages[i]
 
         if (currentPage !== "index.html") {
-            app.get(`/${currentPage.split(`.`)[0]}`, (_, res) => {
-                res.sendFile(path.join(rootPath, currentPage))
+            app.get(`/${currentPage.split(`.`)[0]}.html`, (_, res) => {
+                res.sendFile(join(rootPath, currentPage))
             })
         }
     }
 }
 
-autoLoadPages(path.join(process.cwd(), `pages`))
+await autoLoadPages(join(process.cwd(), `pages`))
 
-app.use(`/css`, express.static(`${path.join(process.cwd(), `static`, `css`)}`))
-app.use(`/js`, express.static(`${path.join(process.cwd(), `static`, `js`)}`))
+app.use(`/css`, express.static(`${join(process.cwd(), `static`, `css`)}`))
+app.use(`/js`, express.static(`${join(process.cwd(), `static`, `js`)}`))
 
-const indexPage = path.join(process.cwd(), `pages`, `index.html`)
+const indexPage = join(process.cwd(), `pages`, `index.html`)
 
-app.get(`/`, (_, res) => {
-    res.sendFile(indexPage)
-})
+app.get(`/index.html`, (_, res) => res.sendFile(indexPage))
+app.get(`/`, (_, res) => res.redirect(`http://${HOST}:${PORT}/index.html`))
 
 app.listen(PORT, HOST, (err) => {
     if (err) {
