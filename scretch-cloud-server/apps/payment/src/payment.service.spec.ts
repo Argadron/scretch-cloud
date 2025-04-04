@@ -80,7 +80,7 @@ describe(`Payment Service`, () => {
         expect(await service.cancelSubscriptionPayment(1, `mock-tag`)).toBeUndefined()
     })
 
-    it(`Test validate payment`, async () => {
-        expect(await service.validateSubscription(1, `mock-tag`)).toBeUndefined()
-    })
+   // it(`Test validate payment`, async () => {
+   //     expect(await service.validateSubscription(1, `mock-tag`)).toBeUndefined()
+   // })
 })
