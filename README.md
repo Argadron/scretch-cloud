@@ -36,7 +36,7 @@
 ```bash
 mkdir scretch-cloud
 cd scretch-cloud
-git clone https://your-repository-url.git
+git clone https://github.com/Argadron/scretch-cloud.git
 
 ```
 ### Шаг 2: Установка зависимостей
