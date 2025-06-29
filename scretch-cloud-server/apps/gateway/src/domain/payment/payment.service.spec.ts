@@ -44,4 +44,8 @@ describe(`Payment service`, () => {
     it(`Test validate payment`, async () => {
         expect(await service.validateSubscription(1, `mock-tag`)).toBeUndefined()
     })
+
+    it(`Test cancel subscription plan`, async () => {
+        expect(await service.cancelSubscription(1)).toBeUndefined()
+    })
 })

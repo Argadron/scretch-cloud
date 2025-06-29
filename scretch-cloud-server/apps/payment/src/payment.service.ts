@@ -157,4 +157,44 @@ export class PaymentService {
 
       this.logger.log(`Successfly canceled payment`)
   }
+
+  public async cancelSubscription(userId: number) {
+    const user = await firstValueFrom(this.usersClient.send<User, Prisma.UserFindUniqueArgs>({ cmd: "find_user_cmd" }, { where: { id: userId } }))
+
+    if (user.accountType !== AccountTypeEnum.PRO) throw new RpcException({ message: `Your account dont have PRO subscription`, status: HttpStatus.BAD_REQUEST })
+
+    const payment = await this.prisma.payment.findMany({
+        where: {
+            userId,
+            paymentStatus: PaymentStatusEnum.PAYED
+        } 
+    })
+
+    if (!payment.length) throw new RpcException({ message: "Payment doesnt founded!", status: HttpStatus.NOT_FOUND })
+
+    const session = await this.stripe.checkout.sessions.retrieve(payment[0].paymentStripeId)
+    const stripePayment = await this.stripe.subscriptions.cancel(session.subscription as string)
+
+    if (stripePayment.status === "canceled") {
+        await this.prisma.$transaction([
+            this.prisma.user.update({
+                where: {
+                    id: userId
+                },
+                data: {
+                    accountType: AccountTypeEnum.DEFAULT
+                }
+            }),
+            this.prisma.payment.deleteMany({
+                where: {
+                    userId,
+                    paymentStatus: PaymentStatusEnum.PAYED
+                }
+            })
+        ])
+
+        this.logger.log(`Success canceled actived subscription`)
+    }
+    else throw new RpcException({ message: "Unhandled error occupped", status: HttpStatus.INTERNAL_SERVER_ERROR })
+  }
 }

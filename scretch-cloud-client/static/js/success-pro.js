@@ -15,5 +15,5 @@ const request = useHttp(`http://localhost:3000/api/payment/validate/${urlTag}`, 
 if (request.code < 400) MiragoRouter.goToMain()
 else {
     alert(`Произошла ошибка: ${request.error}`)
-    MiragoRouter.goToMain()
+    MiragoRouter.goToMain(`needReset=true`)
 }

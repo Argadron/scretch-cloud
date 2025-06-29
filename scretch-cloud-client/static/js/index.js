@@ -22,6 +22,20 @@ else {
     const router = new MiragoRouter(app)
     const HTMLProvider = new MiragoHTML(app)
 
+    const parseBooleanPipe = usePipeFactory({
+        dynamicTarget: false,
+        target: "object",
+        executor: (data) => {
+            for (let i in data) {
+                data[i] = data[i] === "true" ? true : false
+            }
+
+            return data
+        }
+    })
+
+    MiragoRouter.getCurrentQueryArgs(`needReset`, [parseBooleanPipe()]) ? router.routing(`index.html`) : null
+
     const PROFILE_URL = "http://localhost:3000/api/auth/me"
 
     const [ getToken, setToken ] = useLocalStorage("accessToken")
@@ -40,6 +54,7 @@ else {
 
             const profileComponent = app.createComponent(`div`, `profile-ui`, ``, ``)
             const buyPremuimButton = app.createComponent(`button`, `premiumButton`, `premium-button`, `Оформить премиум-подписку`)
+            const cancelPremiumButton = app.createComponent(`button`, `cancel-premium`, `premium-button`, `Отменить премиум-подписку`)
 
             HTMLProvider.insertHTML(profileComponent, `toEnd`, `
                  <div class="profile-container" id="profile-container-div">
@@ -53,6 +68,7 @@ else {
             `)
 
             HTMLProvider.deleteFromDOM(buyPremuimButton)
+            HTMLProvider.deleteFromDOM(cancelPremiumButton)
             
             if (profile.response.accountType !== "PRO") {
                 HTMLProvider.insertComponent(profileComponent, buyPremuimButton, `toEnd`)
@@ -82,6 +98,23 @@ else {
                                 return alert(`Произошла непредвиденная ошибка!`)
                             }
                         }
+                    }
+                }, app)
+            }
+            else {
+                HTMLProvider.insertComponent(profileComponent, cancelPremiumButton, `toEnd`)
+
+                useEvent(cancelPremiumButton, `click`, () => {
+                    const cancelRequest = useHttp("http://localhost:3000/api/payment/cancelPlan", `DELETE`, ``, REQUEST_DEFAULT_HEADERS)
+
+                    if (cancelRequest.code === 401) window.location.reload()
+                    else if (cancelRequest.code === 204) {
+                        alert(`Подписка успешно отменена!`)
+
+                        window.location.reload()
+                    }
+                    else {
+                        alert(`Произошла непредвиденная ошибка: ${cancelRequest.error}, код ошибки: ${cancelRequest.code}`)
                     }
                 }, app)
             }

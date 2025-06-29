@@ -42,6 +42,17 @@ export class PaymentController {
         return await this.paymentService.cancelSubscriptionPayment(userId, urlTag)
     }
 
+    @ApiOperation({ summary: "Cancel active payment plan" })
+    @ApiNoContentResponse({ description: "Success stopped plan" })
+    @ApiBadRequestResponse({ description: `Your account dont have PRO subscription` })
+    @ApiUnauthorizedResponse({ description: "No access token / token invalid" })
+    @ApiBearerAuth()
+    @Delete(`/cancelPlan`)
+    @HttpCode(HttpStatus.NO_CONTENT)
+    public async cancelPlan(@CurrentUser(`id`) userId: number) {
+        return await this.paymentService.cancelSubscription(userId)
+    }
+
     @ApiOperation({ summary: "Validate payment" })
     @ApiNoContentResponse({ description: `Success updated account to PRO type` })
     @ApiBadRequestResponse({ description: `Not payed` })

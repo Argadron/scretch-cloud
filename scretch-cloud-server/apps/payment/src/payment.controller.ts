@@ -25,4 +25,9 @@ export class PaymentController {
   public async validate(@Payload() { userId, urlTag }: { userId: number, urlTag: string }) {
     return await this.paymentService.validateSubscription(userId, urlTag)
   }
+
+  @EventPattern("Cancel_subscription_actived_event")
+  public async cancelSubscription(@Payload() { userId }: { userId: number }) {
+    return await this.paymentService.cancelSubscription(userId)
+  }
 }

@@ -19,7 +19,7 @@ export class FileService {
         const observableStream = this.fileClient.send<{ fileOriginalName: string, file: [{ type: String, data: number[] }]}, { userId: Number, fileName: String }>({ cmd: "get_file_cmd" }, { userId, fileName })
 
         observableStream.subscribe({
-           next: (file) => {
+           next: (file) => { 
                res.header("Content-disposition", `attachment; filename=${file.fileOriginalName}`)
                res.end(Buffer.from(file.file[0].data))
            }
@@ -35,7 +35,7 @@ export class FileService {
 
         observableStream.subscribe({
             next: (file) => {
-                res.header("Content-Disposition", file.fileOriginalName)
+                res.header("Content-Disposition", `attachment; filename=${file.fileOriginalName}`)
                 res.end(Buffer.from(file.file[0].data))
             }
         })

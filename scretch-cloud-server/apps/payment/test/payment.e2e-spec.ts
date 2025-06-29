@@ -38,6 +38,9 @@ describe('PaymentController (e2e)', () => {
                                 }),
                                 expire: jest.fn()
                             }
+                        },
+                        subscriptions: {
+                            cancel: jest.fn().mockResolvedValue({ status: "canceled" })
                         }
                     }
                 },

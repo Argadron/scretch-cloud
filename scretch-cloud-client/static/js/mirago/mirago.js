@@ -576,10 +576,12 @@ class MiragoRouter {
 
     /**
      * Go to the main page.
+     * @param {string} query - queryoptional args
      * @returns {void}
      */
-    static goToMain() {
-        window.location.href = `index.html`
+    static goToMain(query=``) {
+        if (!query) window.location.href = `index.html`
+        else window.location.href = `index.html?${query}`
     }
 
     /**

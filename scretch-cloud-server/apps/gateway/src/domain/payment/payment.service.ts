@@ -24,4 +24,8 @@ export class PaymentService {
     public async validateSubscription(userId: number, urlTag: string) {
         return await firstValueFrom(this.paymentClient.emit<void, { userId: Number, urlTag: String }>("Validate_payment_event", { userId, urlTag }))
     }
+
+    public async cancelSubscription(userId: number) {
+        return await firstValueFrom(this.paymentClient.emit<void, { userId: Number }>("Cancel_subscription_actived_event", { userId }))
+    }
 }

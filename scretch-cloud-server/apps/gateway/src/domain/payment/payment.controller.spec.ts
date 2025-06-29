@@ -18,7 +18,8 @@ describe(`Payment Controller`, () => {
                         getAll: jest.fn().mockResolvedValue({ id: 1, paymentUrlTag: "test-tag-mock" }),
                         createSubscription: jest.fn().mockResolvedValue({ payment: { id: 1, paymentUrlTag: "test-create-tag-mock" }, sessionId: 5  }),
                         cancelSubscriptionPayment: jest.fn().mockResolvedValue(undefined),
-                        validateSubscription: jest.fn().mockResolvedValue(undefined)
+                        validateSubscription: jest.fn().mockResolvedValue(undefined),
+                        cancelSubscription: jest.fn().mockResolvedValue(undefined)
                     }
                 }
             ]
@@ -51,5 +52,9 @@ describe(`Payment Controller`, () => {
 
     it(`Test validate payment`, async () => {
         expect(await controller.validate(1, `mock-tag`)).toBeUndefined()
+    })
+
+    it(`Test cancel plan`, async () => {
+        expect(await controller.cancelPlan(1)).toBeUndefined()
     })
 })
