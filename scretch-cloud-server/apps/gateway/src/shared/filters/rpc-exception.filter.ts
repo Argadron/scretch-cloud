@@ -3,7 +3,7 @@ import { Response } from "express";
 
 @Catch()
 export class RpcExceptionFiler implements ExceptionFilter {
-    catch(exception: any, host: ArgumentsHost) {
+    catch(exception: { message: string, status: number }, host: ArgumentsHost) {
         if (exception.message) {
             const res = host.switchToHttp().getResponse<Response>()
 

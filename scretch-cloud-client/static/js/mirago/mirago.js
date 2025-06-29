@@ -775,20 +775,31 @@ class MiragoRouter {
 
     /**
      * Return current callback route args or null if not provided 
+     * @param {MiragoPipe[]} pipes
      * @returns {any | null}
      */
-    static getCurrentRouteArgs() {
+    static getCurrentRouteArgs(pipes=[]) {
         const routes = MiragoRouter.getRoutes()
+        const localUrl = MiragoRouter.parseUrl(window.location.href)
 
-        return routes[MiragoRouter.parseUrl(window.location.href)]["args"] ?? null
+        if (!pipes.length) return routes[localUrl]["args"] ?? null
+        else {
+            for (const pipe of pipes) {
+                routes[localUrl]["args"] = pipe.executor(routes[localUrl]["args"])
+            }
+
+
+            return routes[localUrl]["args"]
+        }
     }
 
     /**
      * Exctract query value param, also return full query object
      * @param {string | void} query 
+     * @param {MiragoPipe[]} pipes
      * @returns {string | Record<string, string}
      */
-    static getCurrentQueryArgs(query=null) {
+    static getCurrentQueryArgs(query=null, pipes=[]) {
         const queryUrl = window.location.href.split("/").reverse()[0].split("?")[1]
 
         if (!queryUrl) return null;
@@ -799,7 +810,7 @@ class MiragoRouter {
         else {
             const keys = []
             const values = []
-            const queryObject = {}
+            let queryObject = {}
 
             for (const currentQuery of queryArray) {
                 const parsedQuery = currentQuery.split("=")
@@ -812,7 +823,14 @@ class MiragoRouter {
                 queryObject[keys[i]] = values[i] // for example test=1, then keys[i] = test, values[i] = 1
             }
 
-            return query ? queryObject[query] : queryObject
+            if (!pipes.length) return query ? queryObject[query] : queryObject
+            else {
+                for (const pipe of pipes) {
+                    pipe.target === "query" ? query = pipe.executor(query) : queryObject = pipe.executor(queryObject)
+                }
+
+                return query ? queryObject[query] : queryObject
+            }
         }
     }
 }
@@ -1007,6 +1025,23 @@ class MiragoValidator {
     static isDecorator(validateValue) {
         const values = MiragoValidator.getClassParameters(MiragoDecorator, `keys`)
         const validationValues = Object.keys(validateValue)
+
+        return MiragoValidator.twoArraysValidator(values, validationValues)
+    }
+
+    /**
+     * Returns boolean, true if validateValue is a MiragoPipe, else false
+     * @param {object} validateValue
+     * @returns {boolean} 
+     */
+    static isPipe(validateValue) {
+        let values = MiragoValidator.getClassParameters(MiragoPipe, `keys`)
+        const validationValues = Object.keys(validateValue)
+
+        if (values.includes("/**")) {
+            values = values.slice(values.findIndex(elem => elem.includes("*/")))
+            values.shift()
+        }
 
         return MiragoValidator.twoArraysValidator(values, validationValues)
     }
@@ -1387,9 +1422,21 @@ class MiragoDecoratorFabric {
     static createDecorator(func, type="guard") {
         return { 
             func: (...args) => {
-                return func(args)
+                return func(...args)
             },
             type
+        }
+    }
+
+    /**
+     * Create decorator from usePipeFactory hook
+     * @param {MiragoPipe} pipe 
+     * @returns {MiragoDecorator}
+     */
+    static fromPipeFactory(pipe) {
+        return {
+            type: `pipe`,
+            func: pipe.executor
         }
     }
 
@@ -1534,7 +1581,7 @@ function useCache(cache=undefined, cacheOnly=true) {
  * @param {`GET` | `POST` | `PUT` | `DELETE`} method - HTTP Method
  * @param {any} body - Request body
  * @param {object[]} headers - Request headers
- * @param {boolean} JSONParser - Set false, if you doesnt need to JSON parse response
+ * @param {boolean} JSONParser - Set false, if you dont need the auto parse response body to json
  * @param {boolean} withCache - Set true, if you need auto add to cache storage. Return cache key then.
  * @returns {MiragoResponse} - Mirago response interface
  */
@@ -1544,7 +1591,6 @@ function useHttp(url, method=`GET`, body=``, headers=``, JSONParser=true, withCa
         code: 0,
         error: ``,
         response: ``,
-        responseHeaders: [],
         cacheKey: 0
     }
     response.url = url
@@ -1552,7 +1598,6 @@ function useHttp(url, method=`GET`, body=``, headers=``, JSONParser=true, withCa
     const xhr = new XMLHttpRequest()
   
     xhr.open(method, url, false)
-    xhr.withCredentials = true
 
     if (headers) {
         for (let i of headers) {
@@ -1573,9 +1618,7 @@ function useHttp(url, method=`GET`, body=``, headers=``, JSONParser=true, withCa
             }
             else {
                 response.code = xhr.status
-                response.responseHeaders = xhr.getAllResponseHeaders()
-
-                JSONParser ? response.response = JSON.parse(xhr.response) : response.response = xhr.response
+                response.response = JSONParser ? JSON.parse(xhr.response) : xhr.response
             }   
         }
     }
@@ -1983,6 +2026,31 @@ function useLocalStorage(item) {
 }
 
 /**
+ * Create a animation from MiragoComponents list
+ * @param {number[]} compList 
+ * @param {number} delay - Delay animation in MS
+ * @param {Mirago} app
+ * @returns {() => void} Animation func
+ */
+function useAnimtation(compList, delay, app) {
+    return () => {
+        let lastComp;
+        let lastDelay;
+
+        const HTMLProvider = new MiragoHTML(app)
+
+        for (const component of compList) {
+            setTimeout(() => {
+                lastComp ? HTMLProvider.deleteFromDOM(lastComp) : null
+
+                app.renderComponent(component)
+                lastComp = component
+            }, lastDelay ? lastDelay+lastDelay : delay)
+        }
+    }
+}
+
+/**
  * Custom hook factory
  * @param {MiragoHookFactoryOptions} options 
  * @returns {(...args) => {}}
@@ -1990,7 +2058,7 @@ function useLocalStorage(item) {
 function useHookFactory(options) {
     /**
      * Extcract func arguments names
-     * @param {() => {}} func 
+     * @param {(...args) => void} func 
      * @returns {string[]}
      */
     function parametersExtractor(func) {
@@ -2029,6 +2097,23 @@ function useHookFactory(options) {
 
         return (...args) => {
             return options.hookHandler(...dependencies, ...args)
+        }
+    }
+}
+
+/**
+ * Factory to create custom pipe
+ * @param {MiragoCustomPipeOptions} options 
+ * @returns {(pipeTarget?: `query` | `object`, ...args?) => MiragoPipe}
+ */
+function usePipeFactory(options) {
+    return (pipeTarget=options.target, ...args) => {
+        return {
+            executor: ((data) => {  
+                if (args.length) return options.executor(data, ...args)
+                else return options.executor(data)
+            }),
+            target: options.dynamicTarget ? pipeTarget : options.target
         }
     }
 }
@@ -2311,4 +2396,85 @@ class MiragoDecoratorPropertyTarget {
 class MiragoDecorator {
     func = new Function()
     type = ""
+}
+
+class MiragoPipe {
+    /**
+     * Pipe exec handler
+     * @param {Object} data 
+     * @returns {any} - Updated data
+     */
+    executor = (data) => {}
+    target = ""
+}
+
+class MiragoPipes {
+    /**
+     * Parse all object to int
+     * @param {`first` | `second`} parseLevel Level in object to parse
+     * @param {`query` | `object`} parseTarget Target to parse to integer
+     * @returns {MiragoPipe}
+     */
+    static IntParsePipe(parseLevel="first", parseTarget="object") {
+        return {
+            executor: (data) => {
+                if (typeof data !== "object") return data
+
+                for (let i in data) {
+                    if (parseLevel === "first") data[i] = typeof data[i] === "string" ? parseInt(data[i]) : data[i]
+                    else {
+                        for (let e in data[i]) {
+                           if (typeof data[i] === "object") data[i][e] = typeof data[i][e] === "string" ? parseInt(data[i][e]) : data[i][e]
+                        }
+                    }
+                }
+
+                return data
+            },
+            target: parseTarget
+        }
+    }
+
+    /**
+     * Parse JSON string pipe
+     * @param {`query` | `object`} parseTarget - Target to parse from JSON
+     * @returns {MiragoPipe}
+     */
+    static JSONParsePipe(parseTarget="object") {
+        return {
+            executor: (data) => {
+                if (typeof data === "string") {
+                    if (!(data.includes("{"))) return data
+                }
+
+                for (let i in data) {
+                    data[i] = JSON.parse(data[i].replace(/(\w+)/g, '"$1"'))
+                }
+               
+                return data
+            },
+            target: parseTarget
+        }
+    }
+
+    /**
+     * Create pipe from MiragoDecorator
+     * @param {MiragoDecorator} decorator - Decorator with "pipe" type
+     * @param {Pick<MiragoCustomPipeOptions, "dynamicTarget"> & Pick<MiragoCustomPipeOptions, `target`>} options 
+     * @returns {(target?: `query` | `object`, ...args) => MiragoPipe}
+     */
+    static fromFactory(decorator, options) {
+        if (decorator.type !== "pipe") throw new Error(`MiragoError: ${decorator.type} is not a pipe!`)
+            
+       return (target="object", ...args) => ({
+           executor: (data) => decorator.func(data, ...args),
+           target: options.dynamicTarget ? target : options.target
+       })
+    }
+}
+
+class MiragoCustomPipeOptions {
+    executor = (data) => {}
+    dynamicTarget = new Boolean()
+    target = ""
 }

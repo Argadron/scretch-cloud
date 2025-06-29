@@ -161,7 +161,7 @@ export class FileService implements OnModuleInit {
         this.logger.log(`Success get file`)
 
         return new Observable(subscriber => {
-            const chunks = []
+            const chunks: (string | Buffer<ArrayBufferLike>)[] = []
 
             stream.addListener("data", (chunk) => chunks.push(chunk))
             stream.addListener("error", (err) => subscriber.error(err))
