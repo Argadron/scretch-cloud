@@ -33,6 +33,8 @@ model Storage {
   name String 
   size Int @default(1)
   type StorageTypesEnum
+  isPublic Boolean @default(false) @map("is_public")
+  publicUrl String? @unique @map("public_url")
 
   userId Int @map("user_id")
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

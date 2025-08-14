@@ -6,12 +6,13 @@ import { CreateStorageDto } from './dto/create-storage.dto';
 import { firstValueFrom } from 'rxjs';
 import { AccountTypeEnum, Prisma, User } from '@prisma/client';
 import { UpdateStorageDto } from './dto/update-storage.dto';
+import { v4 } from 'uuid'
 import { stringSizeToBytes } from '@app/shared';
 import { AppConfigService } from '@app/app-config';
 
 @Injectable()
 export class StorageService {
-  private readonly usersMaxStorageSizes: IUsersMaxStorageSizes
+    private readonly usersMaxStorageSizes: IUsersMaxStorageSizes
     private readonly logger: Logger = new Logger(StorageService.name)
 
     public constructor(
@@ -77,10 +78,18 @@ export class StorageService {
 
         this.calcStorageSizeAndThrowLimit(user["storages"], dto.name, dto.size, user.accountType)
 
+        let publicUrl: string;
+
+        if (dto.publicType) publicUrl = v4()
+
+        delete dto.publicType
+
         const storage = await this.prisma.storage.create({
             data: {
                 ...dto,
-                userId: user.id
+                userId: user.id,
+                isPublic: publicUrl ? true : false,
+                publicUrl: publicUrl ? publicUrl : null
             }
         })
 
@@ -112,7 +121,9 @@ export class StorageService {
             },
             data: {
                 name: dto.newName ? dto.newName: storage.name,
-                size: dto.size ? dto.size : storage.size
+                size: dto.size ? dto.size : storage.size,
+                isPublic: dto.publicType === true || dto.publicType === false ? dto.publicType : storage.isPublic,
+                publicUrl: storage.publicUrl ? storage.publicUrl : dto.publicType === true ? v4() : null
             }
         })
 
@@ -136,5 +147,25 @@ export class StorageService {
         this.logger.log(`Success deleted storage`)
 
         return deletedStorage
+    }
+
+    public async getPublic(id: string) {
+        const storage = await this.prisma.storage.findUnique({
+            where: {
+                publicUrl: id
+            },
+            include: {
+                files: true
+            }
+        })
+
+        if (!storage) throw new RpcException({ message: "Storage was not found", status: HttpStatus.NOT_FOUND })
+        if (!storage.isPublic) throw new RpcException({ message: "Storage hasn`t public access type", status: HttpStatus.FORBIDDEN })
+
+        delete storage.appId
+
+        this.logger.log(`Success getted public storage`)
+
+        return storage
     }
 }

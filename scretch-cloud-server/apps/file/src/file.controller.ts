@@ -33,4 +33,9 @@ export class FileController {
   public async deleteFileByDeveloper(@Payload() { userId, appId, fileName }: { userId: number, appId: number, fileName: string }) {
     return await this.fileService.deleteFileByDeveloper(userId, appId, fileName)
   }
+
+  @MessagePattern({ cmd: "get_public_file_cmd" })
+  public async getPublicFile(@Payload() { fileName }: { fileName: string }) {
+    return await this.fileService.getPublicFile(fileName)
+  }
 }

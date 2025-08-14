@@ -14,6 +14,7 @@ if (!MiragoRouter.checkIndex()) {
     router.setRoute(`storages.html`, () => {})
     router.setRoute(`payments.html`, () => {})
     router.setRoute(`apps.html`, () => {})
+    router.setRoute(`public-storage.html`, () => {})
 
     MiragoRouter.goToMain()
 }

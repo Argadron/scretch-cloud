@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Header, HttpCode, HttpStatus, Param, Post, Res, UploadedFile, UseInterceptors } from "@nestjs/common";
-import { ApiBadRequestResponse, ApiBearerAuth, ApiConsumes, ApiCreatedResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
+import { ApiBadRequestResponse, ApiBearerAuth, ApiConsumes, ApiCreatedResponse, ApiForbiddenResponse, ApiNoContentResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
 import { FileService } from "./file.service";
 import { Auth } from "@decorators/auth.decorator";
 import { FileInterceptor } from "@nestjs/platform-express";
@@ -9,7 +9,6 @@ import { Response } from "express";
 
 @Controller(`file`)
 @ApiTags(`File Controller`)
-@Auth()
 export class FileController {
     public constructor(private readonly fileService: FileService) {}
 
@@ -20,6 +19,7 @@ export class FileController {
     @ApiNotFoundResponse({ description: "Storage to upload file not founded" })
     @ApiBearerAuth()
     @ApiConsumes(`multipart/form-data`)
+    @Auth()
     @Post(`/upload`)
     @HttpCode(HttpStatus.CREATED)
     @UseInterceptors(FileInterceptor(`file`))
@@ -31,8 +31,9 @@ export class FileController {
     @ApiOkResponse({ description: `File getted successfly` })
     @ApiNotFoundResponse({ description: `File is not found` })
     @ApiUnauthorizedResponse({ description: `No access token / token invalid` })
-    @ApiBearerAuth()
     @Header(`Content-Type`, "application/octet-stream")
+    @ApiBearerAuth()
+    @Auth()
     @Get(`/get/:name`)
     @HttpCode(HttpStatus.OK)
     public async getFile(@CurrentUser(`id`) userId: number, @Param(`name`) fileName: string, @Res() res: Response) {
@@ -44,9 +45,21 @@ export class FileController {
     @ApiNotFoundResponse({ description: `File is not found` })
     @ApiUnauthorizedResponse({ description: `No access token / token invalid` })
     @ApiBearerAuth()
+    @Auth()
     @Delete(`/delete/:name`)
     @HttpCode(HttpStatus.NO_CONTENT)
     public async deleteFile(@CurrentUser(`id`) userId: number, @Param(`name`) fileName: string) {
         return await this.fileService.deleteFile(userId, fileName)
+    }
+
+    @ApiOperation({ summary: "Get public file method" })
+    @ApiOkResponse({ description: "File getted successfly" })
+    @ApiForbiddenResponse({ description: "This file is private!" })
+    @ApiNotFoundResponse({ description: "File was not founded!" })
+    @Header(`Content-Type`, `application/otchet-stream`)
+    @Get(`/get-public/:name`)
+    @HttpCode(HttpStatus.OK)
+    public async getPublic(@Param("name") fileName: string, @Res() res: Response) {
+        return await this.fileService.getPublicFile(fileName, res)
     }
 }

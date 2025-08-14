@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put } from "@nestjs/common";
-import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
+import { ApiBadRequestResponse, ApiBearerAuth, ApiConflictResponse, ApiCreatedResponse, ApiForbiddenResponse, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiTags, ApiUnauthorizedResponse } from "@nestjs/swagger";
 import { StorageService } from "./storage.service";
 import { Auth } from "@decorators/auth.decorator";
 import { CreateStorageDto } from "./dto/create-storage.dto";
@@ -8,7 +8,6 @@ import { UpdateStorageDto } from "./dto/update-storage.dto";
 
 @Controller(`storage`)
 @ApiTags(`Storage Controller`)
-@Auth()
 export class StorageController {
     public constructor(private readonly storageService: StorageService) {}
 
@@ -17,6 +16,7 @@ export class StorageController {
     @ApiUnauthorizedResponse({ description: "No access token / invalid token" })
     @ApiNotFoundResponse({ description: "Storage is not founded" })
     @ApiBearerAuth()
+    @Auth()
     @Get(`/by-name/:name`)
     @HttpCode(HttpStatus.OK)
     public async getByName(@Param(`name`) name: string, @CurrentUser("id") userId: number) {
@@ -29,6 +29,7 @@ export class StorageController {
     @ApiUnauthorizedResponse({ description: "No access token / invalid token" })
     @ApiConflictResponse({ description: "Storage with provided name already exsists!" })
     @ApiBearerAuth()
+    @Auth()
     @Post(`/create`)
     @HttpCode(HttpStatus.CREATED)
     public async create(@Body() dto: CreateStorageDto, @CurrentUser(`id`) userId: number) {
@@ -42,6 +43,7 @@ export class StorageController {
     @ApiNotFoundResponse({ description: "Storage with provided name was not founded" })
     @ApiConflictResponse({ description: "New storage name already exsists!" })
     @ApiBearerAuth()
+    @Auth()
     @Put(`/update`)
     @HttpCode(HttpStatus.OK)
     public async update(@Body() dto: UpdateStorageDto, @CurrentUser(`id`) userId: number) {
@@ -53,9 +55,20 @@ export class StorageController {
     @ApiUnauthorizedResponse({ description: "No access token / invalid token" })
     @ApiNotFoundResponse({ description: "Storage with provided name was not founded" })
     @ApiBearerAuth()
+    @Auth()
     @Delete(`/delete/:name`)
     @HttpCode(HttpStatus.OK)
     public async delete(@Param(`name`) name: string, @CurrentUser(`id`) userId: number) {
         return await this.storageService.delete(name, userId)
+    }
+
+    @ApiOperation({ summary: "Get a public storage by url" })
+    @ApiOkResponse({ description: "Successfly getted public storage" })
+    @ApiNotFoundResponse({ description: "Storage is not founded!" })
+    @ApiForbiddenResponse({ description: "Storage hasn`t public access type" })
+    @Get(`/get-public/:id`)
+    @HttpCode(HttpStatus.OK)
+    public async getPublic(@Param("id") id: string) {
+        return await this.storageService.getPublic(id)
     }
 }

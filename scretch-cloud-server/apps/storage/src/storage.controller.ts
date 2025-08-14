@@ -27,4 +27,9 @@ export class StorageController {
   public async delete(@Payload() { name, userId }: { name: string, userId: number }) {
     return await this.storageService.delete(name, userId)
   }
+
+  @MessagePattern({ cmd: "get_public_cmd" })
+  public async getPublic(@Payload() { id }: { id: string }) {
+    return await this.storageService.getPublic(id)
+  }
 }

@@ -84,6 +84,11 @@ function bootstrap() {
                             <span>Размер:</span>
                             <span>${storage.size / 1024 / 1024} MB</span>
                         </div>
+                        <div class="info-block">
+                            <span>Приватность:</span>
+                            <span>${storage.isPublic ? "Публичное":"Приватное"}</span>
+                            ${storage.isPublic ? `<a href="http://localhost:5000/public-storage.html?id=${storage.publicUrl}">Публичная ссылка хранилища</a>`:``}
+                        </div>
                 </div>
 
                 <button id="detail-button-${storage.name}" class="detail-button">Детальный просмотр</button>
@@ -111,6 +116,13 @@ function bootstrap() {
                         <label for="storageSize">Размер хранилища (в мегабайтах):</label>
                         <input type="number" id="storageSize" required min="0">
 
+                        <label for="publicType">Публичность хранилища:</label>
+                        <select id="publicType" required>
+                           <option value="">Выберите публичность</option>
+                           <option value="public">Публичное</option>
+                           <option value="private">Приватное</option>
+                        </select>
+
                         <button id="create-storage-button" class="">Создать</button>
                     </form  
             `)
@@ -131,13 +143,15 @@ function bootstrap() {
                 const inputNameDOM = document.getElementById(`storageName`)
                 const selectTypeDOM = document.getElementById(`storageType`)
                 const inputSizeDOM = document.getElementById(`storageSize`)
+                const publicTypeDOM = document.getElementById(`publicType`)
 
-                if (!inputNameDOM.value || !selectTypeDOM.value) return alert(`Нужно заполнить все поля!`)
+                if (!inputNameDOM.value || !selectTypeDOM.value || !publicTypeDOM.value) return alert(`Нужно заполнить все поля!`)
                 if (inputSizeDOM.value <= 0) return alert(`Размер должен быть минимум 1 байт!`)
 
                 const data = JSON.stringify({
                     name: inputNameDOM.value,
                     type: selectTypeDOM.value === "normal" ? "DEFAULT":"DEVELOPER",
+                    publicType: selectTypeDOM.value === "public" ? true : false,
                     size: +inputSizeDOM.value * 1024 * 1024
                 })
 
@@ -279,6 +293,7 @@ function detailsButtonsBinder(app, modalComponent, formList, HTMLProvider, modal
             editStorageButton.addEventListener(`click`, () => {
                 const newName = prompt(`Введите новое название хранилища. Оставьте это поле пустым, если не хотите его менять.`)
                 let newSize = prompt(`Введите новый размер хранилища (в мегабайтах). Оставьте это поле пустым, если не хотите его менять.`)
+                const isPublicSettingChanging = confirm(`Сейчас ваше хранилище ${detailStorageInfo.response.isPublic ? "публичное":"приватное"}. Желаете сделать его ${detailStorageInfo.response.isPublic ? "приватным":"публичным"}?`)
 
                 newSize ? newSize = Number(newSize) * 1024 * 1024 : null
 
@@ -288,6 +303,10 @@ function detailsButtonsBinder(app, modalComponent, formList, HTMLProvider, modal
 
                 newName ? data.newName = newName : null
                 newSize ? data.size = newSize : null
+                
+                if (isPublicSettingChanging) {
+                    detailStorageInfo.response.isPublic ? data.publicType = false : data.publicType = true
+                }
 
                 const editRequest = useHttp(`http://localhost:3000/api/storage/update/`, `PUT`, JSON.stringify(data), REQUEST_DEFAULT_HEADERS)
 

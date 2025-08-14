@@ -75,13 +75,24 @@ export class FileService implements OnModuleInit {
         return newSize
     }
 
-    private async getFilePathByNameOrThrow(fileName: string, userId: number) {
-        const file = await this.prisma.file.findUnique({
-            where: {
-                fileName,
-                userId
-            }
-        })
+    private async getFilePathByNameOrThrow(fileName: string, userId: number, isPublic=false) {
+        let file;
+
+        if (isPublic) {
+            file = await this.prisma.file.findUnique({
+                where: {
+                    fileName
+                }
+            })
+        }
+        else { 
+            file = await this.prisma.file.findUnique({
+                where: {
+                    fileName,
+                    userId
+                }
+            })
+        }
 
         if (!file) throw new RpcException({ message: `File is not found!`, status: HttpStatus.NOT_FOUND })
 
@@ -110,6 +121,19 @@ export class FileService implements OnModuleInit {
         })
 
         if (!check) throw new RpcException({ message: `File not found in provided app storage`, status: HttpStatus.NOT_FOUND })
+    }
+
+    private createObservableResponse(stream: ReadStream, fileOriginalName: string) {
+        return new Observable(subscriber => {
+            const chunks: (string | Buffer<ArrayBufferLike>)[] = []
+
+            stream.addListener("data", (chunk) => chunks.push(chunk))
+            stream.addListener("error", (err) => subscriber.error(err))
+            stream.addListener("end", () => {
+                subscriber.next({ fileOriginalName, file: chunks })
+                subscriber.complete()
+            })
+        })
     }
 
     public async upload(dto: UploadFileDto, file: Express.Multer.File, userId: number) {
@@ -160,16 +184,7 @@ export class FileService implements OnModuleInit {
 
         this.logger.log(`Success get file`)
 
-        return new Observable(subscriber => {
-            const chunks: (string | Buffer<ArrayBufferLike>)[] = []
-
-            stream.addListener("data", (chunk) => chunks.push(chunk))
-            stream.addListener("error", (err) => subscriber.error(err))
-            stream.addListener("end", () => {
-                subscriber.next({ fileOriginalName, file: chunks })
-                subscriber.complete()
-            })
-        })
+        return this.createObservableResponse(stream, fileOriginalName)
     }
 
     public async getFileByDeveloper(userId: number, appId: number, fileName: string) {
@@ -196,5 +211,31 @@ export class FileService implements OnModuleInit {
         await this.deleteFile(userId, fileName)
 
         this.logger.log(`Successfly deleted file from application`)
+    }
+
+    public async getPublicFile(fileName: string) {
+        const filePath = await this.getFilePathByNameOrThrow(fileName, 0, true)
+        const { fileOriginalName, storage } = await this.prisma.file.findUnique({
+            where: {
+                fileName
+            },
+            include: {
+                storage: {
+                    select: {
+                        isPublic: true
+                    }
+                }
+            }
+        })
+
+        if (!storage.isPublic) throw new RpcException({ message: "This file is private!", status: HttpStatus.FORBIDDEN })
+
+        let stream: ReadStream;
+
+        if (this.NODE_ENV !== "test") stream = createReadStream(filePath)
+
+        this.logger.log(`Success getted public file`)
+
+        return this.createObservableResponse(stream, fileOriginalName)
     }
 }

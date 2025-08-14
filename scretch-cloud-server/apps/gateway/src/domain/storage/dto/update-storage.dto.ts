@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class UpdateStorageDto {
     @ApiProperty({ description: "A old storage name" })
@@ -16,4 +16,9 @@ export class UpdateStorageDto {
     @IsString()
     @IsOptional()
     readonly newName?: string;
+
+    @ApiProperty({ description: "A new storage public setting" })
+    @IsBoolean()
+    @IsOptional()
+    readonly publicType?: boolean;
 }

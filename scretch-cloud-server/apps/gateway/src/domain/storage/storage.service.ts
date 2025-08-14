@@ -26,4 +26,8 @@ export class StorageService {
     public async delete(name: string, userId: number) {
         return await firstValueFrom(this.storageClient.send<Storage, { name: String, userId: Number }>({ cmd: "delete_cmd" }, { name, userId }))
     }
+
+    public async getPublic(id: string) {
+        return await firstValueFrom(this.storageClient.send<Storage, { id: string }>({ cmd: "get_public_cmd" }, { id }))
+    }
 }

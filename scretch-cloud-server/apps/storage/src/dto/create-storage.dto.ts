@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { StorageTypesEnum } from "@prisma/client";
-import { IsEnum, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 export class CreateStorageDto {
     @ApiProperty({ description: "Storage name" })
@@ -17,4 +17,9 @@ export class CreateStorageDto {
     @IsNumber()
     @IsNotEmpty()
     readonly size: number
+
+    @ApiProperty({ description: "Storage public/private type" })
+    @IsNotEmpty()
+    @IsBoolean()
+    publicType: boolean
 }
